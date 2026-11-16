@@ -2,7 +2,7 @@
 
 **Model your process. Break it on purpose. Learn what failure looks like before it costs you.**
 
-**[Open the live distillation column →](https://ivanegetov-lab.github.io/process-sim/examples/distillation-column/)** (runs in your browser, nothing to install)
+**[Open the live distillation column →](https://ivanegetov-lab.github.io/process-sim/examples/distillation-column/)** · **[Open the live centrifugal pump →](https://ivanegetov-lab.github.io/process-sim/pump/)** (both run in your browser, nothing to install)
 
 A Claude skill for staff engineers, maintenance managers, reliability engineers and the people who train operators. Describe a unit, or hand it an equipment list, a P&ID or your SOPs, and it builds a live simulation you can open in a browser:
 
@@ -33,6 +33,25 @@ A Claude skill for staff engineers, maintenance managers, reliability engineers 
 The tell timing is checked, not assumed: `scripts/check_tells.mjs` runs every fault and confirms the tell comes before the first alarm.
 
 It's a training model: ideal vapor-liquid equilibrium, constant molar overflow, saturated liquid feed. Good for understanding how a column behaves and fails. Not for design or sizing.
+
+## Example 2: P-301 centrifugal pump
+
+A hot condensate return pump (82 °C), so NPSH margin is the whole story. It has a vented receiver, a Y-strainer, an end-suction pump with a 6-vane impeller you can watch spin, a mechanical seal, a bearing frame you can open to see the balls, a coupling and a motor. The control room shows the pump curve against the system curve, NPSH available vs required, and a live vibration spectrum for each bearing (1×, 2×, vane pass, bearing defect frequency, cavitation hash). Eight faults:
+
+| Fault | First tell (before any alarm) |
+|---|---|
+| Suction strainer plugging | Strainer ΔP climbs at hour 8 while flow, pressure and vibration look normal. Cavitation starts around hour 14, the first real alarm comes at hour 23. |
+| Impeller wear | The control valve creeps open and amps rise for the same flow. About 20 hours before the receiver backs up. |
+| Bearing defect | A peak at the outer-race defect frequency shows in the spectrum about 16 hours before the overall vibration alarm. That gap is the P-F interval. |
+| Coupling misalignment | 2× running speed beats 1× at the coupling-end bearing, and that bearing runs hot. |
+| Mechanical seal wear | A steady drip on rounds about 14 hours before the leak-pot alarm. |
+| Level transmitter drift | The board reads 50% while suction pressure keeps falling. Then the pump vortexes and gets blamed. |
+| Discharge valve fails shut | Flow to zero, amps drop, the pump keeps running and the casing heats about 2 °C a minute. |
+| Condensate return surge | The controls absorb it. A disturbance, not a failure. |
+
+![P-301 cavitating behind a plugged strainer](examples/screenshots/pump-cavitation.png)
+
+Same caveat: a training model with illustrative textbook values. Not for design or sizing.
 
 ## Try it
 
@@ -73,6 +92,7 @@ SKILL.md                      the skill
 references/                   interview, modeling guide, fault design, UI guide
 scripts/check_tells.mjs       first tell vs first alarm, for every fault
 examples/distillation-column/ the live column (sim.js, scene.js, app.js, index.html)
+examples/centrifugal-pump/    the live pump (same structure, different unit)
 ```
 
 MIT license. Built by Ivan Getov: chemical engineer, distillation technical staff for most of his career, then maintenance manager for the same columns.

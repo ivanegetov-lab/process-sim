@@ -9,7 +9,7 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 
 You build one folder that runs in a browser: a 3D model of the user's unit you can open up, a control room with live numbers, and a panel of faults to break, foul and fix. Underneath is a real dynamic model: mass balances, hydraulics, heat transfer, control loops. When something breaks, the numbers move because the physics moves, not because a script says so.
 
-The worked example is `examples/distillation-column/`: a 20-tray benzene/toluene column with a kettle reboiler, condenser, reflux drum, two pumps, six PI loops and ten faults. Read it before you build anything. It is also your scaffold: copy it and replace the model, the geometry and the fault table.
+The worked example is `examples/distillation-column/`: a 20-tray benzene/toluene column with a kettle reboiler, condenser, reflux drum, two pumps, six PI loops and ten faults. Read it before you build anything. It is also your scaffold: copy it and replace the model, the geometry and the fault table. A second example, `examples/centrifugal-pump/`, shows the same shape on rotating equipment: pump vs system curve, NPSH, cavitation, and a vibration spectrum by component (1×, 2×, vane pass, bearing defect frequencies). Start from whichever is closer to the user's unit.
 
 **The rule that makes it worth using: every number is calculated, and every fault has a first tell.** The first tell is a number that is already on the board and moves before any alarm or quality complaint. That is what staff engineers and maintenance people are meant to learn: what failure looks like early.
 
