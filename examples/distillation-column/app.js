@@ -6,6 +6,7 @@ import { Plant, COL, trayY } from './scene.js';
 const { ColumnSim, FAULTS } = window.ColumnSimLib;
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
+const CAM_SLOW = Math.max(0.2, +(params.get('camslow') || 1));   // >1 = slower camera flights (used for recordings)
 
 // ---------------- sim ----------------
 let sim = new ColumnSim();
@@ -105,7 +106,7 @@ function setView(v, instant) { tweenCam(new THREE.Vector3(...v.pos), new THREE.V
 let camTween = null;
 function tweenCam(pos, target, dur) {
   if (!dur) { camera.position.copy(pos); controls.target.copy(target); controls.update(); return; }
-  camTween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: target, t: 0, dur };
+  camTween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: target, t: 0, dur: dur * CAM_SLOW };
 }
 
 function resize() {
@@ -145,7 +146,7 @@ function applyVis() {
 let openAnim = null;
 let isOpen = false;
 function animateOpen(to) {
-  openAnim = { from: plant.openT, to, t: 0, dur: 2.2 };
+  openAnim = { from: plant.openT, to, t: 0, dur: 2.2 * CAM_SLOW };
   isOpen = to > 0.5;
   $('#openBtn').textContent = isOpen ? 'Close the column' : 'Open up the column';
 }
