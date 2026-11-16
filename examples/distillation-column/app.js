@@ -233,8 +233,13 @@ function toast(kind, title, body) {
   el.innerHTML = `<div class="tt"><span class="tm">${clockStr(sim.t, true)}</span>${title}</div>${body ? `<div class="tb">${body}</div>` : ''}`;
   const box = $('#toasts'); box.prepend(el);
   while (box.children.length > 4) box.lastChild.remove();
-  setTimeout(() => el.classList.add('out'), kind === 'tell' ? 11000 : 7000);
-  setTimeout(() => el.remove(), kind === 'tell' ? 11600 : 7600);
+  const life = kind === 'tell' ? 11000 : 7000;
+  el.dataset.out = curNow + life; el.dataset.end = curNow + life + 600;   // app clock, so recordings are deterministic
+}
+function expireToasts() {
+  document.querySelectorAll('#toasts .toast').forEach((el) => {
+    if (curNow > +el.dataset.end) el.remove(); else if (curNow > +el.dataset.out) el.classList.add('out');
+  });
 }
 
 // ---------------- UI: loops ----------------
@@ -312,7 +317,7 @@ const TRENDS = {
   quality: { series: [['xD', 'Distillate Bz %', '#d98a16', (p) => p.xD * 100, [90, 100]], ['xB', 'Bottoms Bz %', '#1f8a8a', (p) => p.xB * 100, [0, 10], true]], specs: [[97, 'L'], [3.5, 'R']] },
   valves: { series: [['steamV', 'Steam TV-105 %', '#e8573a', (p) => p.steamV, [0, 100]], ['cwV', 'CW PV-110 %', '#2a64d6', (p) => p.cwV, [0, 100]]], specs: [[92, 'L']] },
   hyd: { series: [['dP', 'Column ΔP kPa', '#6b5bd6', (p) => p.dP, [5, 30]], ['flood', 'Max flood %', '#d93333', (p) => p.flood * 100, [30, 130], true]], specs: [[22, 'L']] },
-  press: { series: [['P', 'Top pressure kPa', '#1d2328', (p) => p.P, [80, 280]], ['T5', 'TI-105 reads °C', '#e8573a', (p) => p.T5, [90, 125], true], ['T5true', 'Tray 5 true °C', '#999', (p) => p.T5true, [90, 125], true]], specs: [[175, 'L']] },
+  press: { series: [['P', 'Top pressure kPa', '#1d2328', (p) => p.P, [80, 280]], ['T5', 'TI-105 reads °C', '#1f8a8a', (p) => p.T5, [100, 116], true], ['T5true', 'Tray 5 true °C', '#e8573a', (p) => p.T5true, [100, 116], true]], specs: [[175, 'L']] },
   flows: { series: [['F', 'Feed', '#9b7bd4', (p) => p.F, [0, 200]], ['D', 'Distillate', '#d98a16', (p) => p.D, [0, 200]], ['B', 'Bottoms', '#1f8a8a', (p) => p.B, [0, 200]], ['LR', 'Reflux', '#e8573a', (p) => p.LR, [0, 200]]], specs: [] },
 };
 function drawTrend() {
@@ -357,7 +362,7 @@ function drawTrend() {
       const yy = padT + (1 - (v - rr[0]) / (rr[1] - rr[0])) * (h - padT - padB);
       g.strokeStyle = 'rgba(217,51,51,0.5)'; g.setLineDash([4, 3]); g.beginPath(); g.moveTo(padL, yy); g.lineTo(w - padR, yy); g.stroke(); g.setLineDash([]);
     });
-    g.strokeStyle = color; g.lineWidth = key === 'T5true' ? 1.2 : 1.8; if (key === 'T5true') g.setLineDash([3, 3]);
+    g.strokeStyle = color; g.lineWidth = key === 'T5true' ? 2.2 : 1.8; if (key === 'T5true') g.setLineDash([5, 3]);
     g.beginPath();
     let first = true;
     for (const p of H) { if (p.t < t0) continue; const x = X(p.t), y = Y(fn(p)); if (first) { g.moveTo(x, y); first = false; } else g.lineTo(x, y); }
@@ -661,6 +666,7 @@ function frame(now) {
   renderer.render(scene, camera);
   updateLabels();
   updateCallouts();
+  expireToasts();
   uiAcc += dt; chartAcc += dt;
   if (uiAcc > 0.15) { uiAcc = 0; updatePanels(); renderInfo(); }
   if (chartAcc > 0.5) { chartAcc = 0; drawTrend(); drawProfile(); }
@@ -676,6 +682,6 @@ if (params.has('open')) { plant.setOpen(1); isOpen = true; $('#openBtn').textCon
 if (!RECORD) requestAnimationFrame(frame);
 
 // expose for scripted recording / debugging
-window.APP = { get sim() { return sim; }, plant, camera, controls, setView, tweenCam, animateOpen, select, VIEWS, toggleFault, FX, FS, resize,
+window.APP = { THREE, get sim() { return sim; }, plant, camera, controls, setView, tweenCam, animateOpen, select, VIEWS, toggleFault, FX, FS, resize,
   tick: (dt) => { vnow += dt * 1000; last = vnow - dt * 1000; frame(vnow); },
   get isOpen() { return isOpen; }, setSpeed: (s) => { speed = s; buildSpeeds(); }, setColor: (m) => document.querySelector(`#colorMode [data-m="${m}"]`).click() };
